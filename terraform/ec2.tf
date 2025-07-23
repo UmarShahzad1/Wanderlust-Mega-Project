@@ -1,45 +1,103 @@
 resource "aws_key_pair" "deployer" {
   key_name   = "terra-automate-key"
-  public_key = file("/Users/shubham/Documents/work/TrainWithShubham/terra-practice/terra-key.pub")
+  public_key = file("/root/JENKINS-PROJECT-SHUBHAM/Wanderlust-Mega-Project/terraform/terra-key.pub")
 }
 
 resource "aws_default_vpc" "default" {
-
 }
 
 resource "aws_security_group" "allow_user_to_connect" {
   name        = "allow TLS"
   description = "Allow user to connect"
   vpc_id      = aws_default_vpc.default.id
+
+  # SSH
   ingress {
-    description = "port 22 allow"
+    description = "SSH"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  egress {
-    description = " allow all outgoing traffic "
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
+  # SMTP
+  ingress {
+    description = "SMTP"
+    from_port   = 25
+    to_port     = 25
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # HTTP
   ingress {
-    description = "port 80 allow"
+    description = "HTTP"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # HTTPS
   ingress {
-    description = "port 443 allow"
+    description = "HTTPS"
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # SMTPS
+  ingress {
+    description = "SMTPS"
+    from_port   = 465
+    to_port     = 465
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # Custom TCP Port Range (3000-10000)
+  ingress {
+    description = "Custom TCP Range 3000-10000"
+    from_port   = 3000
+    to_port     = 10000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # Custom TCP Port 6379 (Redis)
+  ingress {
+    description = "Redis"
+    from_port   = 6379
+    to_port     = 6379
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # Custom TCP Port 6443 (Kubernetes API)
+  ingress {
+    description = "Kubernetes API"
+    from_port   = 6443
+    to_port     = 6443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # Custom TCP Port Range (30000-32767) - NodePort range
+  ingress {
+    description = "NodePort Range"
+    from_port   = 30000
+    to_port     = 32767
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # Egress - Allow all outgoing traffic
+  egress {
+    description = "Allow all outgoing traffic"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -53,11 +111,13 @@ resource "aws_instance" "testinstance" {
   instance_type   = var.instance_type
   key_name        = aws_key_pair.deployer.key_name
   security_groups = [aws_security_group.allow_user_to_connect.name]
+
   tags = {
     Name = "Automate"
   }
+
   root_block_device {
-    volume_size = 30 
+    volume_size = 30
     volume_type = "gp3"
   }
 }
